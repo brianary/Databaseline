@@ -21,13 +21,10 @@ Database
 Invoke-Sqlcmd
 
 .LINK
-ConvertFrom-DataRow.ps1
-
-.LINK
 https://docs.microsoft.com/sql/relational-databases/system-catalog-views/sys-index-columns-transact-sql
 
 .EXAMPLE
-Find-DbIndexes.ps1 -ServerInstance '(localdb)\ProjectsV13' -Database AdventureWorks2014 -ColumnName ErrorLogID
+Find-DbIndexes -ServerInstance '(localdb)\ProjectsV13' -Database AdventureWorks2014 -ColumnName ErrorLogID
 
 SchemaName     : dbo
 TableName      : ErrorLog
@@ -39,8 +36,6 @@ IsDisabled     : 0
 ColumnsInIndex : 1
 #>
 
-#Requires -Version 3
-#Requires -Module SqlServer
 [CmdletBinding()][OutputType([Management.Automation.PSCustomObject])] Param(
 <#
 The name of a server (and optional instance) to connect and use for the query.
@@ -60,7 +55,7 @@ May be used with optional Database, Credential, and ConnectionProperties paramet
 [Parameter(Position=2,Mandatory=$true)][Alias('ColName')][string]$ColumnName
 )
 
-Use-SqlcmdParams.ps1
+Use-SqlcmdParams
 
 Invoke-Sqlcmd @"
 select object_schema_name(i.object_id) SchemaName,
@@ -78,3 +73,4 @@ select object_schema_name(i.object_id) SchemaName,
  where col_name(ic.object_id,ic.column_id) = '$($ColumnName -replace "'","''")'
  order by TableName, IndexName;
 "@ |ConvertFrom-DataRow.ps1
+#TODO: Add or replace dependency.

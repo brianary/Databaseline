@@ -18,7 +18,7 @@ https://www.powershellgallery.com/packages/SqlServer/
 https://dbatools.io/
 
 .EXAMPLE
-Get-DbaDbTable -sqli '(localdb)\ProjectsV13' -dat AdventureWorks2016 -tab Production.Product |Measure-DbTable.ps1
+Get-DbaDbTable -sqli '(localdb)\ProjectsV13' -dat AdventureWorks2016 -tab Production.Product |Measure-DbTable
 
 #TableName            : [Production].[Product]
 #RowCount             : 504
@@ -49,8 +49,6 @@ rowguid               : unique, 0 nulls, 504 values: 7A927632-99A4-4F24-ADCE-006
 ModifiedDate          : 0 nulls, 2 values: Feb  8 2014 10:01AM .. Feb  8 2014 10:03AM
 #>
 
-#Requires -Version 3
-#Requires -Module SqlServer
 [CmdletBinding(ConfirmImpact='Medium')][OutputType([Management.Automation.PSCustomObject])] Param(
 # An SMO table object associated to the database to examine.
 [Parameter(Position=1,Mandatory=$true,ValueFromPipeline=$true)]
@@ -130,4 +128,5 @@ Process
 		Where-Object {$PSCmdlet.ShouldProcess("column $Table","query $($Table.RowCount) rows")} |
 		ForEach-Object {Invoke-Sqlcmd @_} |
 		ConvertFrom-DataRow.ps1
+		#TODO: Add or replace dependency.
 }

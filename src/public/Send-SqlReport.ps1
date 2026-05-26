@@ -6,7 +6,7 @@ Execute a SQL statement and email the results.
 Database
 
 .LINK
-Use-SqlcmdParams.ps1
+Use-SqlcmdParams
 
 .LINK
 Send-MailMessage
@@ -15,8 +15,6 @@ Send-MailMessage
 Invoke-Sqlcmd
 #>
 
-#Requires -Version 3
-#Requires -Module SqlServer
 [CmdletBinding(SupportsShouldProcess=$true,ConfirmImpact='None')][OutputType([void])] Param(
 # The email subject.
 [Parameter(Position=0,Mandatory=$true)][string]$Subject,
@@ -82,11 +80,11 @@ Indicates that SSL should be used when sending the message.
 #>
 [switch]$UseSsl,
 # The URL of the Seq server to log to.
-[uri]$SeqUrl = $PSDefaultParameterValues['Send-SeqEvent.ps1:Server']
+[uri]$SeqUrl = $PSDefaultParameterValues['Send-SeqEvent:Server']
 )
-
+#TODO: Add or replace dependencies.
 Use-NetMailConfig.ps1
-Use-SqlcmdParams.ps1
+Use-SqlcmdParams
 if($SeqUrl){Use-SeqServer.ps1 $SeqUrl}
 
 # use the default From host for emails without a host
@@ -113,11 +111,13 @@ if($UseSsl)   { $Msg.UseSsl = $true }
 try
 {
     $query = @{ Query = $Sql }
+	#TODO: Add or replace dependency.
     [psobject[]]$data = Invoke-Sqlcmd @query -ErrorAction Stop |ConvertFrom-DataRow.ps1
     $data |Format-Table |Out-String |Write-Verbose
     if(!$data -or $data.Length -eq 0) # no rows
     {
         Write-Verbose "No rows returned."
+		#TODO: Add or replace dependency.
         if($SeqUrl) { Send-SeqEvent.ps1 'No rows returned for {Subject}' @{Subject=$Subject} -Level Information }
         if($EmptySubject) { $Msg.Subject = $EmptySubject; Send-MailMessage @Msg  }
         return
@@ -149,6 +149,7 @@ $PostContent
         if($Caption){$tableFormat.Add('Caption',$Caption)}
         $Msg.Add('Body',($data |
             ConvertTo-Html -PreContent $PreContent -PostContent $PostContent -Head '<style type="text/css">th,td {padding:2px 1ex 0 2px}</style>' |
+			#TODO: Add or replace dependency.
             Format-HtmlDataTable.ps1 @tableFormat |
             Out-String))
     }
@@ -158,6 +159,7 @@ $PostContent
 catch # report problems
 {
     Write-Warning $_
+	#TODO: Add or replace dependency.
     if($SeqUrl) { Send-SeqScriptEvent.ps1 'Reporting' -InvocationScope 2 }
     # consciously omitting Cc & Bcc
     $Msg = @{
@@ -171,5 +173,5 @@ catch # report problems
     if($Priority) { $Msg.Priority= $Priority }
     if($PSCmdlet.ShouldProcess("Message:`n$(New-Object PSObject -Property $Msg|Format-List|Out-String)`n",'Send message'))
     { Send-MailMessage @Msg }
-    Stop-ThrowError.ps1 "$_" -OperationContext $_
+    throw "$_"
 }

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
 Generates a Mermaid entity relation diagram for database tables.
 
@@ -18,7 +18,7 @@ https://learn.microsoft.com/dotnet/api/table
 https://dbatools.io/
 
 .EXAMPLE
-Get-DbaDbTable -SqlInstance '(localdb)\ProjectsV13' -Database AdventureWorks2016 -Table Production.Product |Export-MermaidER.ps1
+Get-DbaDbTable -SqlInstance '(localdb)\ProjectsV13' -Database AdventureWorks2016 -Table Production.Product |Export-MermaidER
 
 erDiagram
 Product {
@@ -50,7 +50,7 @@ Product {
 }
 
 .EXAMPLE
-Get-DbaDbTable -SqlInstance '(localdb)\ProjectsV13' -Database AdventureWorks2016 -Schema Purchasing |Export-MermaidER.ps1
+Get-DbaDbTable -SqlInstance '(localdb)\ProjectsV13' -Database AdventureWorks2016 -Schema Purchasing |Export-MermaidER
 
 erDiagram
 ProductVendor {
@@ -118,8 +118,6 @@ PurchaseOrderHeader }|--|| ShipMethod : "ShipMethodID: Foreign key constraint re
 PurchaseOrderHeader }|--|| Vendor : "VendorID: Foreign key constraint referencing Vendor.VendorID."
 #>
 
-#Requires -Version 3
-using namespace Microsoft.SqlServer.Management.Smo
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseProcessBlockForPipelineCommand','',
 Justification='This script uses $input within an End block.')]
 [CmdletBinding()][OutputType([string])] Param(
@@ -129,6 +127,7 @@ Justification='This script uses $input within an End block.')]
 )
 Begin
 {
+	#TODO: Add or replace dependency.
 	Import-CharConstants.ps1 NL
 
 	filter Format-ColumnAsMermaid

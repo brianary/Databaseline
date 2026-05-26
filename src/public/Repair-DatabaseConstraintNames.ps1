@@ -6,7 +6,7 @@ Finds database constraints with system-generated names and gives them determinis
 Database
 
 .LINK
-Use-SqlcmdParams.ps1
+Use-SqlcmdParams
 
 .LINK
 Invoke-Sqlcmd
@@ -15,13 +15,11 @@ Invoke-Sqlcmd
 https://www.databasejournal.com/features/mssql/article.php/1570801/Beware-of-the-System-Generated-Constraint-Name.htm
 
 .EXAMPLE
-Repair-DatabaseConstraintNames.ps1 SqlServerName DatabaseName -Update
+Repair-DatabaseConstraintNames SqlServerName DatabaseName -Update
 
 WARNING: Renamed 10 defaults
 #>
 
-#Requires -Version 3
-#Requires -Module SqlServer
 [CmdletBinding(SupportsShouldProcess=$true)][OutputType([void])] Param(
 # The name of a server (and optional instance) to connect to.
 [Parameter(ParameterSetName='ByConnectionParameters',Position=0,Mandatory=$true)][string] $ServerInstance,
@@ -38,7 +36,7 @@ WARNING: Renamed 10 defaults
 [switch] $Update
 )
 
-Use-SqlcmdParams.ps1
+Use-SqlcmdParams
 
 function Resolve-SqlcmdResult
 {

@@ -19,6 +19,7 @@ Enhancements for working with SQL Server databases.
 - [Find-DatabaseValue](./src/public/Find-DatabaseValue.ps1): <!-- ERROR: Unable to find type [Microsoft.SqlServer.Management.Smo.Database]. -->
 - [Find-DbColumn](./src/public/Find-DbColumn.ps1): <!-- ERROR: Unable to find type [Microsoft.SqlServer.Management.Smo.Database]. -->
 - [Find-DbIndexes](./src/public/Find-DbIndexes.ps1): <!-- ERROR: Unable to find type [Microsoft.SqlServer.Management.Smo.Database]. -->
+- [Initialize-DatabaseNotebook](https://github.com/brianary/Databaseline/wiki/Initialize-DatabaseNotebook): Populates a new notebook with details about a database.
 - [Measure-DbColumn](./src/public/Measure-DbColumn.ps1): <!-- ERROR: Unable to find type [Microsoft.SqlServer.Management.Smo.Column]. -->
 - [Measure-DbColumnValues](./src/public/Measure-DbColumnValues.ps1): <!-- ERROR: Unable to find type [Microsoft.SqlServer.Management.Smo.Column]. -->
 - [Measure-DbTable](./src/public/Measure-DbTable.ps1): <!-- ERROR: Unable to find type [Microsoft.SqlServer.Management.Smo.Table]. -->

@@ -18,7 +18,7 @@ Database
 https://msdn.microsoft.com/library/system.data.common.dbproviderfactories.aspx
 
 .EXAMPLE
-New-DbProviderObject.ps1 ConnectionStringBuilder 'Server=(localdb)\ProjectsV13;Database=AdventureWorks;Integrated Security=SSPI;Encrypt=True'
+New-DbProviderObject ConnectionStringBuilder 'Server=(localdb)\ProjectsV13;Database=AdventureWorks;Integrated Security=SSPI;Encrypt=True'
 
 Key                 Value
 ---                 -----
@@ -28,17 +28,16 @@ Integrated Security True
 Encrypt             True
 
 .EXAMPLE
-$conn = New-DbProviderObject.ps1 Connection $connstr -Open
+$conn = New-DbProviderObject Connection $connstr -Open
 
 ($conn contains an open DbConnection object.)
 
 .EXAMPLE
-$cmd = New-DbProviderObject.ps1 Command -ConnectionString $connstr -Provider Odbc -StoredProcedure -OpenConnection
+$cmd = New-DbProviderObject Command -ConnectionString $connstr -Provider Odbc -StoredProcedure -OpenConnection
 
 ($cmd contains an OdbcCommand with a CommandType of StoredProcedure and an open connection to $connstr.)
 #>
 
-#Requires -Version 7
 [CmdletBinding()][OutputType([Data.Common.DbCommand])]
 [OutputType([Data.Common.DbConnection])][OutputType([Data.Common.DbConnectionStringBuilder])] Param(
 # The type of object to create.
@@ -102,7 +101,7 @@ Process
 	{
 		if($StoredProcedure) {$obj.CommandType = 'StoredProcedure'}
 		if($ConnectionString)
-		{$obj.Connection = New-DbProviderObject.ps1 Connection $ConnectionString -Provider:$Provider -OpenConnection:$OpenConnection}
+		{$obj.Connection = New-DbProviderObject Connection $ConnectionString -Provider:$Provider -OpenConnection:$OpenConnection}
 	}
 	return $value
 }

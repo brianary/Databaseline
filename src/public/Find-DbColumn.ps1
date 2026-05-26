@@ -19,16 +19,10 @@ Database
 System.Configuration
 
 .LINK
-ConvertFrom-DataRow.ps1
-
-.LINK
-Stop-ThrowError.ps1
-
-.LINK
 Invoke-Sqlcmd
 
 .EXAMPLE
-Find-DbColumn.ps1 -ServerInstance '(localdb)\ProjectsV13' -Database AdventureWorks2016 -IncludeColumns %price% |Format-Table -AutoSize
+Find-DbColumn -ServerInstance '(localdb)\ProjectsV13' -Database AdventureWorks2016 -IncludeColumns %price% |Format-Table -AutoSize
 
 TableSchema TableName               ColumnName        DataType Nullable DefaultValue
 ----------- ---------               ----------        -------- -------- ------------
@@ -40,7 +34,6 @@ Sales       SalesOrderDetail        UnitPrice         money       False
 Sales       SalesOrderDetail        UnitPriceDiscount money       False ((0.0))
 #>
 
-#Requires -Version 3
 [CmdletBinding()][OutputType([Management.Automation.PSCustomObject])] Param(
 # The server and instance to connect to.
 [Parameter(ParameterSetName='ByConnectionParameters',Mandatory=$true)][string] $ServerInstance,
@@ -84,7 +77,7 @@ function Format-LikeCondition([string]$column,[string[]]$patterns,[switch]$not)
 "@
 }
 
-Use-SqlcmdParams.ps1 -QueryTimeout 300
+Use-SqlcmdParams -QueryTimeout 300
 
 $colssql = @"
 select TABLE_SCHEMA TableSchema,
@@ -150,4 +143,5 @@ if($ExcludeColumns) { $colssql += Format-LikeCondition COLUMN_NAME $ExcludeColum
 $colssql += ' order by TABLE_SCHEMA, TABLE_NAME, ORDINAL_POSITION;'
 
 Write-Debug "Schema Query:`n$colssql"
+#TODO: Add or replace dependency.
 Invoke-Sqlcmd $colssql |ConvertFrom-DataRow.ps1

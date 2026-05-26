@@ -19,8 +19,6 @@ https://www.powershellgallery.com/packages/SqlServer/
 https://dbatools.io/
 #>
 
-#Requires -Version 3
-#Requires -Module SqlServer
 [CmdletBinding(ConfirmImpact='Medium')][OutputType([Management.Automation.PSCustomObject])] Param(
 # An SMO column object associated to the database column to examine.
 [Parameter(Position=0,Mandatory=$true,ValueFromPipeline=$true,ParameterSetName='Column')]
@@ -55,7 +53,7 @@ Process
 	else
 	{
 		$Column = $Table.Columns[$ColumnName]
-		if(!$Column) {Stop-ThrowError.ps1 "Column '$ColumnName' not found in table '$($Table.Name)'" -Argument ColumnName}
+		if(!$Column) {throw "Column '$ColumnName' not found in table '$($Table.Name)'"}
 	}
 	$table = $Column.Parent
 	$fqtn = "$($table.Parent.Parent.Name).$($table.Parent.Name).$($table.Name)"
@@ -69,4 +67,5 @@ Process
 		Where-Object {$PSCmdlet.ShouldProcess("column $fqtn.$ColumnName","query $($table.RowCount) rows")} |
 		ForEach-Object {Invoke-Sqlcmd @_} |
 		ConvertFrom-DataRow.ps1
+		#TODO: Add or replace dependency.
 }

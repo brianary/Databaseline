@@ -35,7 +35,7 @@ https://dbatools.io/
 https://wikipedia.org/wiki/Windows1252
 
 .EXAMPLE
-$table = Get-DbaDbTable SqlServerName -Database DbName -Table TableName; Measure-DbColumn.ps1 $table.Columns['record_id']
+$table = Get-DbaDbTable SqlServerName -Database DbName -Table TableName; Measure-DbColumn $table.Columns['record_id']
 
 ColumnName        : record_id
 SqlType           : int
@@ -50,7 +50,7 @@ Variance          : 290.330011074197
 StandardDeviation : 17.0390730696889
 
 .EXAMPLE
-Get-DbaDbTable SqlServerName -Database DbName -Table TableName |Measure-DbColumn.ps1 surname
+Get-DbaDbTable SqlServerName -Database DbName -Table TableName |Measure-DbColumn surname
 
 ColumnName         : surname
 SqlType            : varchar(40)
@@ -71,7 +71,7 @@ HasNonAscii7       : False
 HasNonAlphanumeric : True
 
 .EXAMPLE
-Get-DbaDbTable '(localdb)\ProjectsV13' -database AdventureWorks2016 -Table Sales.SalesOrderHeader |Measure-DbColumn.ps1 OrderDate
+Get-DbaDbTable '(localdb)\ProjectsV13' -database AdventureWorks2016 -Table Sales.SalesOrderHeader |Measure-DbColumn OrderDate
 
 ColumnName      : OrderDate
 SqlType         : datetime
@@ -114,8 +114,6 @@ November        : 2716
 December        : 2656
 #>
 
-#Requires -Version 3
-#Requires -Module SqlServer
 [CmdletBinding(ConfirmImpact='Medium')][OutputType([Management.Automation.PSCustomObject])] Param(
 # An SMO column object associated to the database column to examine.
 [Parameter(Position=0,Mandatory=$true,ValueFromPipeline=$true,ParameterSetName='Column')]
@@ -354,7 +352,7 @@ Process
 	else
 	{
 		$Column = $Table.Columns[$ColumnName]
-		if(!$Column) {Stop-ThrowError.ps1 "Column '$ColumnName' not found in table '$($Table.Name)'" -Argument ColumnName}
+		if(!$Column) {throw "Column '$ColumnName' not found in table '$($Table.Name)'"}
 	}
     $datatype = $Column.DataType
     $querytype,$typefmt = $typeinfo[$datatype.Name]
@@ -371,4 +369,5 @@ Process
         Where-Object {$PSCmdlet.ShouldProcess("column $fqtn.$ColumnName","query $($table.RowCount) rows")} |
         ForEach-Object {Invoke-Sqlcmd @_} |
         ConvertFrom-DataRow.ps1
+		#TODO: Add or replace dependency.
 }

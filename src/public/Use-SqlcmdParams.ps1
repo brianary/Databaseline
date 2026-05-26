@@ -27,7 +27,7 @@ To use this script, add any or all of these parameter sets:
 # ...
 )
 
-Or, if you wish to support Use-SqlcmdParams.ps1 in scripts that call your script:
+Or, if you wish to support Use-SqlcmdParams in scripts that call your script:
 
 [CmdletBinding()] Param(
 # The name of the server (and instance) to connect to.
@@ -49,12 +49,8 @@ Database
 
 .COMPONENT
 System.Configuration
-
-.LINK
-Import-Variables.ps1
 #>
 
-#Requires -Version 3
 #TODO: document params
 [CmdletBinding()][OutputType([void])] Param(
 [string] $HostName,
@@ -91,6 +87,7 @@ function Get-SqlcmdParameterSet($ParameterSetName)
 	}
 }
 
+#TODO: Add or replace dependency.
 Get-Variable -Scope 1 -Name PSBoundParameters -ValueOnly -EA SilentlyContinue |Import-Variables.ps1
 $caller = Get-Variable -Scope 1 -Name PSCmdlet -ValueOnly -EA SilentlyContinue
 if(!$caller){throw 'Calling script must start with [CmdletBinding()] Param( <# connection params #> ). See help.'}

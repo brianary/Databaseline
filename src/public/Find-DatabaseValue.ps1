@@ -13,16 +13,10 @@ Database
 System.Configuration
 
 .LINK
-ConvertFrom-DataRow.ps1
-
-.LINK
-Stop-ThrowError.ps1
-
-.LINK
 Invoke-Sqlcmd
 
 .EXAMPLE
-Find-DatabaseValue.ps1 FR -IncludeSchemata Sales -MaxRows 100 -ServerInstance '(localdb)\ProjectsV13' -Database AdventureWorks2016
+Find-DatabaseValue FR -IncludeSchemata Sales -MaxRows 100 -ServerInstance '(localdb)\ProjectsV13' -Database AdventureWorks2016
 
 TableName         : [Sales].[SalesTerritory]
 TerritoryID       : 7
@@ -37,7 +31,7 @@ rowguid           : bf806804-9b4c-4b07-9d19-706f2e689552
 ModifiedDate      : 04/30/2008 00:00:00
 
 .EXAMPLE
-Find-DatabaseValue.ps1 41636 -IncludeColumns %OrderID -ServerInstance '(localdb)\ProjectsV13' -Database AdventureWorks2016 |tee order41636.txt
+Find-DatabaseValue 41636 -IncludeColumns %OrderID -ServerInstance '(localdb)\ProjectsV13' -Database AdventureWorks2016 |tee order41636.txt
 
 TableName            : [Production].[TransactionHistory]
 TransactionID        : 100046
@@ -77,7 +71,6 @@ ActualCost         : 36.7500
 ModifiedDate       : 08/11/2013 00:00:00
 #>
 
-#Requires -Version 3
 [CmdletBinding()][OutputType([Management.Automation.PSCustomObject])] Param(
 <#
 The value to search for. The datatype is significant, e.g. searching for money/smallmoney columns, cast the type to decimal: [decimal]13.55
@@ -138,7 +131,7 @@ function Format-LikeCondition([string]$column,[string[]]$patterns,[switch]$not)
 "@
 }
 
-Use-SqlcmdParams.ps1 -QueryTimeout 300
+Use-SqlcmdParams -QueryTimeout 300
 
 if($Value -is [int])
 {
@@ -254,15 +247,18 @@ if($ExcludeColumns) { $colssql += Format-LikeCondition COLUMN_NAME $ExcludeColum
 $colssql += ' order by TABLE_SCHEMA, TABLE_NAME, ORDINAL_POSITION;'
 
 Write-Debug "Schema Query:`n$colssql"
+#TODO: Add or replace dependency.
 $corpus = Invoke-Sqlcmd $colssql |ConvertFrom-DataRow.ps1
-if(!$corpus) {Stop-ThrowError.ps1 'No columns left to search.' -SearchContext $PSBoundParameters}
+if(!$corpus) {throw 'No columns left to search.'}
 Write-Verbose "Searching $($corpus.Length) tables"
 $count,$p,$rows,$lasttable = 0,0,0,''
 foreach($row in $corpus)
 {
+	#TODO: Add or replace dependency.
     Import-Variables.ps1 $row
     if($lasttable -ne "$TABLE_SCHEMA.$TABLE_NAME")
     {
+		#TODO: Add or replace dependency.
         [int]$rows = Invoke-Sqlcmd "select count(*) rows from $TABLE_SCHEMA.$TABLE_NAME" |ConvertFrom-DataRow.ps1 -AsValues
         $lasttable = "$TABLE_SCHEMA.$TABLE_NAME"
     }
@@ -278,6 +274,7 @@ foreach($row in $corpus)
     {
         $count += $data.Rows.Count
         Write-Verbose "Found $($data.Rows.Count) rows in $TABLE_SCHEMA.$TABLE_NAME."
+		#TODO: Add or replace dependency.
         $data.Rows |ConvertFrom-DataRow.ps1
         if($FindFirst) { break }
     }

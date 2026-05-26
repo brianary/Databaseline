@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
 Test a given connection string and provide details about the connection.
 
@@ -9,7 +9,7 @@ System.Management.Automation.PSObject containing properties about the connection
 Database
 
 .EXAMPLE
-Test-ConnectionString.ps1 'Server=(localdb)\ProjectsV13;Integrated Security=SSPI;Encrypt=True' -Details
+Test-ConnectionString 'Server=(localdb)\ProjectsV13;Integrated Security=SSPI;Encrypt=True' -Details
 
 ServerName           : SERVERNAME\LOCALDB#DCCC9EEC
 AppName              : Core Microsoft SqlClient Data Provider
@@ -27,7 +27,7 @@ Workstation ID       : SERVERNAME
 AuthScheme           : NTLM
 ComputerName         : SERVERNAME
 Encrypt              : True
-LocalCLR             : 
+LocalCLR             :
 TcpPort              : 1433
 LocalPowerShell      : 7.3.9
 NetBiosName          : SERVERNAME
@@ -45,8 +45,6 @@ SqlVersion           : 13.0.4001
 LocalSMOVersion      : 17.100.0.0
 #>
 
-#Requires -Version 3
-#Requires -Modules dbatools
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText','',
 Justification='The data source is plaintext. SecureString benefits may be in dispute: <https://github.com/dotnet/platform-compat/blob/master/docs/DE0001.md>')]
 [CmdletBinding()][OutputType([psobject])] Param(
@@ -61,8 +59,10 @@ Process
         {
             $csb = New-DbaConnectionStringBuilder -ConnectionString $ConnectionString
             $server = Connect-DbaInstance -ConnectionString $ConnectionString
+			#TODO: Add or replace dependency.
             $conn = Join-Keys.ps1 -ReferenceObject (New-Object Collections.Hashtable $csb) `
                 -InputObject (Test-DbaConnection $csb.DataSource -SkipPSRemoting |ConvertTo-OrderedDictionary.ps1)
+				#TODO: Add or replace dependency.
             $info = Invoke-DbaQuery -SqlInstance $server -As PSObject -Query @'
 select @@ServerName [ServerName], db_name() [DatabaseName],
        serverproperty('ComputerNamePhysicalNetBIOS') [ComputerName],
@@ -72,7 +72,9 @@ select @@ServerName [ServerName], db_name() [DatabaseName],
        serverproperty('Edition') [Edition],
        app_name() [AppName];
 '@ |ConvertTo-OrderedDictionary.ps1
+#TODO: Add or replace dependency.
             [void] $info.Add('Server', $server)
+			#TODO: Add or replace dependency.
             $connInfo = Join-Keys.ps1 $conn $info
             if($connInfo.Contains('Password')) {$connInfo['Password'] = ConvertTo-SecureString $connInfo['Password'] -AsPlainText -Force}
             return [pscustomobject]$connInfo
@@ -81,6 +83,7 @@ select @@ServerName [ServerName], db_name() [DatabaseName],
         {
             return Invoke-DbaQuery -SqlInstance (Connect-DbaInstance -ConnectionString $ConnectionString) `
                 -Query 'select cast(1 as bit) Success;' |ConvertFrom-DataRow.ps1 -AsValues
+				#TODO: Add or replace dependency.
         }
     }
     catch {return $false}

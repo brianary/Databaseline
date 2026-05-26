@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
 Exports table data as a T-SQL MERGE statement.
 
@@ -15,7 +15,7 @@ https://learn.microsoft.com/sql/t-sql/statements/merge-transact-sql
 https://dbatools.io/
 
 .EXAMPLE
-Get-DbaDbTable -SqlInstance $server -Schema HumanResources -Table Department |Export-TableMerge.ps1
+Get-DbaDbTable -SqlInstance $server -Schema HumanResources -Table Department |Export-TableMerge
 
 if exists (select * from information_schema.columns where table_schema = 'HumanResources' and table_name = 'Department'
 and columnproperty(object_id(table_name), column_name,'IsIdentity') = 1)
@@ -55,9 +55,6 @@ and columnproperty(object_id(table_name), column_name,'IsIdentity') = 1)
 set identity_insert [HumanResources].[Department] off;
 #>
 
-#Requires -Version 7
-#Requires -Modules dbatools
-using namespace Microsoft.SqlServer.Management.Smo
 [CmdletBinding()][OutputType([string])] Param(
 [Parameter(Position=0,Mandatory=$true,ValueFromPipeline=$true)][Table] $Table
 )
@@ -83,6 +80,7 @@ Begin
 
     function Format-Merge([Table] $Table)
     {
+		#TODO: Add or replace dependency.
         Import-CharConstants.ps1 NL
         $identitytest = @"
 if exists (select * from information_schema.columns where table_schema = $(ConvertTo-SqlLiteral $Table.Schema) and table_name = $(ConvertTo-SqlLiteral $Table.Name)

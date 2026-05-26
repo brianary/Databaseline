@@ -20,14 +20,11 @@ Export-DbaScript
 New-DbaScriptingOption
 
 .EXAMPLE
-Get-DbaDatabase -SqlInstance ServerName\instance -Database AdventureWorks2014 |Export-DatabaseScript.ps1
+Get-DbaDatabase -SqlInstance ServerName\instance -Database AdventureWorks2014 |Export-DatabaseScript
 
 Outputs SQL scripts to files using the default options.
 #>
 
-#Requires -Version 3
-#Requires -Modules dbatools
-using namespace Microsoft.SqlServer.Management.Smo
 [CmdletBinding()][OutputType([void])] Param(
 # The database from which to export scripts.
 [Parameter(ValueFromPipeline=$true,Mandatory=$true)][Database] $Database,
@@ -71,10 +68,7 @@ Begin
 	{
 		[CmdletBinding()] Param()
 		$dir = (ConvertTo-FileName $Database.Name)
-		if(Test-Path $dir)
-		{
-			Stop-ThrowError.ps1 "Directory $dir already exists" -OperationContext $dir
-		}
+		if(Test-Path $dir) {throw "Directory $dir already exists"}
 		New-Item $dir -Type Directory |Push-Location
 		$Database.Assemblies |Export-DatabaseScript 'Assemblies'
 		$Database.Triggers |Export-DatabaseScript 'Database Triggers'

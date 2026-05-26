@@ -6,7 +6,7 @@ Finds database constraints that have been incompletely re-enabled.
 Database
 
 .LINK
-Use-SqlcmdParams.ps1
+Use-SqlcmdParams
 
 .LINK
 Invoke-Sqlcmd
@@ -15,13 +15,11 @@ Invoke-Sqlcmd
 https://www.brentozar.com/blitz/foreign-key-trusted/
 
 .EXAMPLE
-Repair-DatabaseUntrustedConstraints.ps1 SqlServerName DatabaseName -Update
+Repair-DatabaseUntrustedConstraints SqlServerName DatabaseName -Update
 
 WARNING: Checked 2 constraints
 #>
 
-#Requires -Version 3
-#Requires -Module SqlServer
 [CmdletBinding(SupportsShouldProcess=$true)][OutputType([void])] Param(
 # The name of a server (and optional instance) to connect to.
 [Parameter(ParameterSetName='ByConnectionParameters',Position=0,Mandatory=$true)][string] $ServerInstance,
@@ -38,7 +36,7 @@ WARNING: Checked 2 constraints
 [switch] $Update
 )
 
-Use-SqlcmdParams.ps1
+Use-SqlcmdParams
 
 function Resolve-SqlcmdResult
 {
