@@ -3,22 +3,15 @@
 Tests searching an entire database for a field value.
 #>
 
-$basename = "$(($MyInvocation.MyCommand.Name -split '\.',2)[0])."
-$skip = !(Test-Path .changes -Type Leaf) ? $false :
-	!@(Get-Content .changes |Get-Item |Select-Object -ExpandProperty Name |Where-Object {$_.StartsWith($basename)})
 if(!(&"$PSScriptRoot/../scripts/Test-RelevantTest.ps1")) {return}
 BeforeAll {
 	Set-StrictMode -Version Latest
 	&"$PSScriptRoot/../scripts/Import-ThisModule.ps1"
 }
 Describe 'Find-DatabaseValue' -Tag Find-DatabaseValue -Skip:$skip {
-	BeforeAll {
-		$scriptsdir,$sep = (Split-Path $PSScriptRoot),[io.path]::PathSeparator
-		if($scriptsdir -notin ($env:Path -split $sep)) {$env:Path += "$sep$scriptsdir"}
-	}
 	Context 'Searches an entire database for a field value' -Tag FindDatabaseValue,Find,DatabaseValue,Database {
 		It "Finds France in [Sales].[SalesTerritory] by country code" -Skip:$(!$env:TestConnectionString) {
-			$found = Find-DatabaseValue.ps1 FR -IncludeSchemata Sales -MaxRows 100 -ConnectionString $env:TestConnectionString
+			$found = Find-DatabaseValue FR -IncludeSchemata Sales -MaxRows 100 -ConnectionString $env:TestConnectionString
 			$found.'#TableName' |Should -BeExactly '[Sales].[SalesTerritory]'
 			$found.'#ColumnName' |Should -BeExactly '[CountryRegionCode]'
 			$found.CountryRegionCode |Should -BeExactly 'FR'
@@ -26,7 +19,7 @@ Describe 'Find-DatabaseValue' -Tag Find-DatabaseValue -Skip:$skip {
 			$found.Group |Should -BeExactly 'Europe'
 		}
 		It "Finds matching values across several tables" -Skip:$(!$env:TestConnectionString) {
-			$found = Find-DatabaseValue.ps1 41636 -IncludeColumns %OrderID -ConnectionString $env:TestConnectionString
+			$found = Find-DatabaseValue 41636 -IncludeColumns %OrderID -ConnectionString $env:TestConnectionString
 			$TransactionHistory = $found |Where-Object '#TableName' -eq '[Production].[TransactionHistory]'
 			$TransactionHistory.'#TableName' |Should -BeExactly '[Production].[TransactionHistory]'
 			$TransactionHistory.'#ColumnName' |Should -BeExactly '[ReferenceOrderID]'
@@ -45,4 +38,7 @@ Describe 'Find-DatabaseValue' -Tag Find-DatabaseValue -Skip:$skip {
 			$WorkOrderRouting.ProductID |Should -BeExactly 826
 		}
 	}
+}
+AfterAll {
+	&"$PSScriptRoot/../scripts/Remove-ThisModule.ps1"
 }

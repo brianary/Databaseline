@@ -3,22 +3,14 @@
 Tests exporting table data as a T-SQL MERGE statement.
 #>
 
-$basename = "$(($MyInvocation.MyCommand.Name -split '\.',2)[0])."
-$skip = !(Test-Path .changes -Type Leaf) ? $false :
-	!@(Get-Content .changes |Get-Item |Select-Object -ExpandProperty Name |Where-Object {$_.StartsWith($basename)})
 if(!(&"$PSScriptRoot/../scripts/Test-RelevantTest.ps1")) {return}
 BeforeAll {
 	Set-StrictMode -Version Latest
 	&"$PSScriptRoot/../scripts/Import-ThisModule.ps1"
+	$datadir = Join-Path $PSScriptRoot 'data'
+	$server = if(!!$env:TestConnectionString) {Connect-DbaInstance -SqlInstance $env:TestConnectionString}
 }
 Describe 'Export-TableMerge' -Tag Export-TableMerge -Skip:$skip {
-	BeforeAll {
-		if(!(Get-Module -List dbatools)) {Install-Module dbatools -Force}
-		$scriptsdir,$sep = (Split-Path $PSScriptRoot),[io.path]::PathSeparator
-		if($scriptsdir -notin ($env:Path -split $sep)) {$env:Path += "$sep$scriptsdir"}
-		$datadir = Join-Path $PSScriptRoot 'data'
-		$server = if(!!$env:TestConnectionString) {Connect-DbaInstance -SqlInstance $env:TestConnectionString}
-	}
 	Context 'Exports table data' -Tag ExportTableMerge,Export,TableMerge,Database {
 		It "Exports AdventureWorks HumanResources.Department table data" -Skip:$(!$env:TestConnectionString) -TestCases @(
 			@{ Schema = 'HumanResources'; Table = 'Department' }
@@ -32,4 +24,7 @@ Describe 'Export-TableMerge' -Tag Export-TableMerge -Skip:$skip {
 				Should -BeExactly $result
 		}
 	}
+}
+AfterAll {
+	&"$PSScriptRoot/../scripts/Remove-ThisModule.ps1"
 }

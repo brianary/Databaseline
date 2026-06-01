@@ -2,7 +2,7 @@
 Output demo.gif
 Hide
 Set Shell pwsh
-Type "Import-Module ../src/.publish/Databaseline.psd1"
+Type "Import-Module ../.publish/Databaseline.psd1"
 Enter
 Type "Clear-Host"
 Enter
