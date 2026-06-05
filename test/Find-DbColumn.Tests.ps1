@@ -11,7 +11,7 @@ BeforeAll {
 	Set-StrictMode -Version Latest
 	&"$PSScriptRoot/../scripts/Import-ThisModule.ps1"
 }
-Describe 'Find-DbColumn' -Tag Find-DbColumn -Skip:$skip {
+Describe 'Find-DbColumn' -Tag Find-DbColumn {
 	Context 'Searches for database columns' -Tag FindDbColumn,Find,DbColumn,Database {
 		It "Finds price columns in the test database" -Skip:$(!$env:TestConnectionString) {
 			Find-DbColumn -ConnectionString $env:TestConnectionString -IncludeColumns %price% |

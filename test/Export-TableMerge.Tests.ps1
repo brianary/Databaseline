@@ -10,7 +10,7 @@ BeforeAll {
 	$datadir = Join-Path $PSScriptRoot 'data'
 	$server = if(!!$env:TestConnectionString) {Connect-DbaInstance -SqlInstance $env:TestConnectionString}
 }
-Describe 'Export-TableMerge' -Tag Export-TableMerge -Skip:$skip {
+Describe 'Export-TableMerge' -Tag Export-TableMerge {
 	Context 'Exports table data' -Tag ExportTableMerge,Export,TableMerge,Database {
 		It "Exports AdventureWorks HumanResources.Department table data" -Skip:$(!$env:TestConnectionString) -TestCases @(
 			@{ Schema = 'HumanResources'; Table = 'Department' }

@@ -127,8 +127,7 @@ Justification='This script uses $input within an End block.')]
 )
 Begin
 {
-	#TODO: Add or replace dependency.
-	Import-CharConstants.ps1 NL
+	$NL = "`r`n"
 
 	filter Format-ColumnAsMermaid
 	{

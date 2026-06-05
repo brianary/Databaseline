@@ -8,7 +8,7 @@ BeforeAll {
 	Set-StrictMode -Version Latest
 	&"$PSScriptRoot/../scripts/Import-ThisModule.ps1"
 }
-Describe 'Find-DatabaseValue' -Tag Find-DatabaseValue -Skip:$skip {
+Describe 'Find-DatabaseValue' -Tag Find-DatabaseValue {
 	Context 'Searches an entire database for a field value' -Tag FindDatabaseValue,Find,DatabaseValue,Database {
 		It "Finds France in [Sales].[SalesTerritory] by country code" -Skip:$(!$env:TestConnectionString) {
 			$found = Find-DatabaseValue FR -IncludeSchemata Sales -MaxRows 100 -ConnectionString $env:TestConnectionString
