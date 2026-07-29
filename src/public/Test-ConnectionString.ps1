@@ -8,6 +8,9 @@ System.Management.Automation.PSObject containing properties about the connection
 .FUNCTIONALITY
 Database
 
+.LINK
+https://dbatools.io/
+
 .EXAMPLE
 Test-ConnectionString 'Server=(localdb)\ProjectsV13;Integrated Security=SSPI;Encrypt=True' -Details
 
@@ -59,10 +62,8 @@ Process
         {
             $csb = New-DbaConnectionStringBuilder -ConnectionString $ConnectionString
             $server = Connect-DbaInstance -ConnectionString $ConnectionString
-			#TODO: Add or replace dependency.
-            $conn = Join-Keys.ps1 -ReferenceObject (New-Object Collections.Hashtable $csb) `
-                -InputObject (Test-DbaConnection $csb.DataSource -SkipPSRemoting |ConvertTo-OrderedDictionary.ps1)
-				#TODO: Add or replace dependency.
+            $conn = Join-Keys -ReferenceObject (New-Object Collections.Hashtable $csb) `
+                -InputObject (Test-DbaConnection $csb.DataSource -SkipPSRemoting |ConvertTo-OrderedDictionary)
             $info = Invoke-DbaQuery -SqlInstance $server -As PSObject -Query @'
 select @@ServerName [ServerName], db_name() [DatabaseName],
        serverproperty('ComputerNamePhysicalNetBIOS') [ComputerName],
@@ -71,19 +72,16 @@ select @@ServerName [ServerName], db_name() [DatabaseName],
        current_timestamp [ServerTime],
        serverproperty('Edition') [Edition],
        app_name() [AppName];
-'@ |ConvertTo-OrderedDictionary.ps1
-#TODO: Add or replace dependency.
+'@ |ConvertTo-OrderedDictionary
             [void] $info.Add('Server', $server)
-			#TODO: Add or replace dependency.
-            $connInfo = Join-Keys.ps1 $conn $info
+            $connInfo = Join-Keys $conn $info
             if($connInfo.Contains('Password')) {$connInfo['Password'] = ConvertTo-SecureString $connInfo['Password'] -AsPlainText -Force}
             return [pscustomobject]$connInfo
         }
         else
         {
             return Invoke-DbaQuery -SqlInstance (Connect-DbaInstance -ConnectionString $ConnectionString) `
-                -Query 'select cast(1 as bit) Success;' |ConvertFrom-DataRow.ps1 -AsValues
-				#TODO: Add or replace dependency.
+                -Query 'select cast(1 as bit) Success;' -As SingleValue
         }
     }
     catch {return $false}

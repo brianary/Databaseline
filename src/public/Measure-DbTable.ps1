@@ -120,13 +120,8 @@ Process
 {
 	$sql = "$SOQ $($Table.Columns |Format-ColumnCount) $EOQ" -f $Table.Schema,$Table.Name
 	Write-Verbose "SQL: $sql"
-	@{
-		Query = $sql
-		Database = $Table.Parent.Name
-		ServerInstance = $Table.Parent.Parent.Name
-	} |
-		Where-Object {$PSCmdlet.ShouldProcess("column $Table","query $($Table.RowCount) rows")} |
-		ForEach-Object {Invoke-Sqlcmd @_} |
-		ConvertFrom-DataRow.ps1
-		#TODO: Add or replace dependency.
+	if($PSCmdlet.ShouldProcess("table $Table","query $($table.RowCount) rows"))
+	{
+		Invoke-DbaQuery -SqlInstance $table.Parent.Parent -Database $table.Parent.Name -Query $sql -As PSObject
+	}
 }

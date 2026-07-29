@@ -59,13 +59,8 @@ Process
 	$fqtn = "$($table.Parent.Parent.Name).$($table.Parent.Name).$($table.Name)"
 	$sql = $query -f $table.Schema,$table.Name,$ColumnName
 	Write-Verbose "SQL: $sql"
-	@{
-		Query = $sql
-		Database = $table.Parent.Name
-		ServerInstance = $table.Parent.Parent.Name
-	} |
-		Where-Object {$PSCmdlet.ShouldProcess("column $fqtn.$ColumnName","query $($table.RowCount) rows")} |
-		ForEach-Object {Invoke-Sqlcmd @_} |
-		ConvertFrom-DataRow.ps1
-		#TODO: Add or replace dependency.
+	if($PSCmdlet.ShouldProcess("column $fqtn.$ColumnName","query $($table.RowCount) rows"))
+	{
+		Invoke-DbaQuery -SqlInstance $table.Parent.Parent -Database $table.Parent.Name -Query $sql -As PSObject
+	}
 }

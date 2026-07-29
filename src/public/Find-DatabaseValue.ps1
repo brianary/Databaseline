@@ -13,10 +13,10 @@ Database
 System.Configuration
 
 .LINK
-Invoke-Sqlcmd
+https://dbatools.io/
 
 .EXAMPLE
-Find-DatabaseValue FR -IncludeSchemata Sales -MaxRows 100 -ServerInstance '(localdb)\ProjectsV13' -Database AdventureWorks2016
+Find-DatabaseValue FR -IncludeSchemata Sales -MaxRows 100 -SqlInstance '(localdb)\ProjectsV13' -Database AdventureWorks2016
 
 TableName         : [Sales].[SalesTerritory]
 TerritoryID       : 7
@@ -31,7 +31,7 @@ rowguid           : bf806804-9b4c-4b07-9d19-706f2e689552
 ModifiedDate      : 04/30/2008 00:00:00
 
 .EXAMPLE
-Find-DatabaseValue 41636 -IncludeColumns %OrderID -ServerInstance '(localdb)\ProjectsV13' -Database AdventureWorks2016 |tee order41636.txt
+Find-DatabaseValue 41636 -IncludeColumns %OrderID -SqlInstance '(localdb)\ProjectsV13' -Database AdventureWorks2016 |tee order41636.txt
 
 TableName            : [Production].[TransactionHistory]
 TransactionID        : 100046
@@ -88,17 +88,10 @@ Searches, by type:
 If the -LikeValue switch is specified, the type of value is assumed to be string.
 #>
 [Parameter(Position=0,Mandatory=$true)] $Value,
-# The server and instance to connect to.
-[Parameter(ParameterSetName='ByConnectionParameters',Mandatory=$true)][string] $ServerInstance,
-# The database to use.
-[Parameter(ParameterSetName='ByConnectionParameters',Mandatory=$true)][string] $Database,
-# Specifies a connection string to connect to the server.
-[Parameter(ParameterSetName='ByConnectionString',Mandatory=$true)][Alias('ConnStr','CS')][string] $ConnectionString,
-# Specifies an SMO Database object to query.
-[Parameter(ParameterSetName='ByDatabase',Mandatory=$true)]
-[Microsoft.SqlServer.Management.Smo.Database] $SmoDatabase,
-# The connection string name from the ConfigurationManager to use.
-[Parameter(ParameterSetName='ByConnectionName',Mandatory=$true)][string] $ConnectionName,
+# The server to use, by name or constructed via Connect-DbaInstance.
+[Parameter(Position=0,Mandatory=$true)][Alias('Parent','ServerInstance')][DbaInstanceParameter] $SqlInstance,
+# The the database to connect to on the server.
+[Parameter(Position=1,Mandatory=$true)][Alias('Name')][string] $Database,
 # A like-pattern of database schemata to include (will only include these).
 [string[]] $IncludeSchemata,
 # A like-pattern of database schemata to exclude.
@@ -120,7 +113,7 @@ If the -LikeValue switch is specified, the type of value is assumed to be string
 # Interpret the value as a like-pattern (% for zero-or-more characters, _ for a single character, \ is escape).
 [switch] $LikeValue
 )
-try{[void][Configuration.ConfigurationManager]}catch{Add-Type -AssemblyName System.Configuration}
+
 function Format-LikeCondition([string]$column,[string[]]$patterns,[switch]$not)
 {
     $like,$andOr = if($not){'not like','and'}else{'like','or'}
@@ -131,7 +124,7 @@ function Format-LikeCondition([string]$column,[string[]]$patterns,[switch]$not)
 "@
 }
 
-Use-SqlcmdParams -QueryTimeout 300
+Use-DbInstance -As PSObject
 
 if($Value -is [int])
 {
@@ -247,19 +240,16 @@ if($ExcludeColumns) { $colssql += Format-LikeCondition COLUMN_NAME $ExcludeColum
 $colssql += ' order by TABLE_SCHEMA, TABLE_NAME, ORDINAL_POSITION;'
 
 Write-Debug "Schema Query:`n$colssql"
-#TODO: Add or replace dependency.
-$corpus = Invoke-Sqlcmd $colssql |ConvertFrom-DataRow.ps1
+$corpus = Invoke-DbaQuery -Query $colssql
 if(!$corpus) {throw 'No columns left to search.'}
 Write-Verbose "Searching $($corpus.Length) tables"
 $count,$p,$rows,$lasttable = 0,0,0,''
 foreach($row in $corpus)
 {
-	#TODO: Add or replace dependency.
-    Import-Variables.ps1 $row
+    Import-Variables $row
     if($lasttable -ne "$TABLE_SCHEMA.$TABLE_NAME")
     {
-		#TODO: Add or replace dependency.
-        [int]$rows = Invoke-Sqlcmd "select count(*) rows from $TABLE_SCHEMA.$TABLE_NAME" |ConvertFrom-DataRow.ps1 -AsValues
+        [int]$rows = Invoke-DbaQuery -Query "select count(*) rows from $TABLE_SCHEMA.$TABLE_NAME" -As SingleValue
         $lasttable = "$TABLE_SCHEMA.$TABLE_NAME"
     }
     Write-Progress 'Searching columns' "$TABLE_SCHEMA.$TABLE_NAME.$COLUMN_NAME" 1 -CurrentOperation "$rows rows" `
@@ -269,13 +259,12 @@ foreach($row in $corpus)
     $query = $valsql -f $TABLE_SCHEMA,$TABLE_NAME,$COLUMN_NAME
     [Data.DataTable]$data = $null
     Write-Verbose "Query: $query"
-    $data = try {Invoke-Sqlcmd $query -OutputAs DataTables} catch {Write-Error $_; continue}
+    $data = try {Invoke-DbaQuery -Query $query -As DataTable} catch {Write-Error $_; continue}
     if($data -and ($data.Rows.Count -gt 0))
     {
         $count += $data.Rows.Count
         Write-Verbose "Found $($data.Rows.Count) rows in $TABLE_SCHEMA.$TABLE_NAME."
-		#TODO: Add or replace dependency.
-        $data.Rows |ConvertFrom-DataRow.ps1
+        $data.Rows
         if($FindFirst) { break }
     }
 }

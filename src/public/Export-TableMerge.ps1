@@ -80,8 +80,7 @@ Begin
 
     function Format-Merge([Table] $Table)
     {
-		#TODO: Add or replace dependency.
-        Import-CharConstants.ps1 NL
+		$NL = [Environment]::NewLine
         $identitytest = @"
 if exists (select * from information_schema.columns where table_schema = $(ConvertTo-SqlLiteral $Table.Schema) and table_name = $(ConvertTo-SqlLiteral $Table.Name)
 and columnproperty(object_id(table_name), column_name,'IsIdentity') = 1)
