@@ -6,13 +6,11 @@ Execute a SQL statement and email the results.
 Database
 
 .LINK
-Use-SqlcmdParams
+https://dbatools.io/
 
 .LINK
 Send-MailMessage
 
-.LINK
-Invoke-Sqlcmd
 #>
 
 [CmdletBinding(SupportsShouldProcess=$true,ConfirmImpact='None')][OutputType([void])] Param(
@@ -22,35 +20,13 @@ Invoke-Sqlcmd
 [Parameter(Position=1,Mandatory=$true)][string[]]$To,
 # The SQL statement to execute.
 [Parameter(Position=2,Mandatory=$true)][string]$Sql,
-# The name of a server (and optional instance) to connect and use for the query.
-[Parameter(ParameterSetName='ByConnectionParameters',Position=3)][string]$ServerInstance,
+# The server to use, by name or constructed via Connect-DbaInstance.
+[Parameter(Position=0,Mandatory=$true)][Alias('Parent','ServerInstance')][DbaInstanceParameter] $SqlInstance,
 # The the database to connect to on the server.
-[Parameter(ParameterSetName='ByConnectionParameters',Position=4)][string]$Database,
-# Specifies a connection string to connect to the server.
-[Parameter(ParameterSetName='ByConnectionString',Mandatory=$true)][string]$ConnectionString,
-# Specifies an SMO Database object to query.
-[Parameter(ParameterSetName='ByDatabase',Mandatory=$true)]
-[Microsoft.SqlServer.Management.Smo.Database] $SmoDatabase,
-# The connection string name from the ConfigurationManager to use when executing the query.
-[Parameter(ParameterSetName='ByConnectionName',Mandatory=$true)][string]$ConnectionName,
+[Parameter(Position=1,Mandatory=$true)][Alias('Name')][string] $Database,
 # The subject line for the email when no data is returned.
 [string]$EmptySubject,
-<#
-The from address to use for the email.
-The default is to use $PSEmailServer.
-If that is missing, it will be populated by the value from the
-configuration value:
-
-<system.net>
-  <mailSettings>
-    <smtp from="source@example.org" deliveryMethod="network">
-      <network host="mail.example.org" enableSsl="true" />
-    </smtp>
-  </mailSettings>
-</system.net>
-
-(If enableSsl is set to true, SSL will be used to send the report.)
-#>
+# The from address to use for the email. The default is to use $PSEmailServer.
 [string]$From,
 # The optional table caption to add.
 [string]$Caption,
@@ -82,10 +58,10 @@ Indicates that SSL should be used when sending the message.
 # The URL of the Seq server to log to.
 [uri]$SeqUrl = $PSDefaultParameterValues['Send-SeqEvent:Server']
 )
-#TODO: Add or replace dependencies.
-Use-NetMailConfig.ps1
-Use-SqlcmdParams
-if($SeqUrl){Use-SeqServer.ps1 $SeqUrl}
+
+Use-DbInstance
+
+if($SeqUrl){Use-SeqServer $SeqUrl}
 
 # use the default From host for emails without a host
 $mailhost = ([Net.Mail.MailAddress]$PSDefaultParameterValues['Send-MailMessage:From']).Host |Out-String
@@ -110,15 +86,12 @@ if($UseSsl)   { $Msg.UseSsl = $true }
 
 try
 {
-    $query = @{ Query = $Sql }
-	#TODO: Add or replace dependency.
-    [psobject[]]$data = Invoke-Sqlcmd @query -ErrorAction Stop |ConvertFrom-DataRow.ps1
+    [psobject[]]$data = Invoke-DbaQuery -Query $Sql -As PSObject -ErrorAction Stop
     $data |Format-Table |Out-String |Write-Verbose
     if(!$data -or $data.Length -eq 0) # no rows
     {
         Write-Verbose "No rows returned."
-		#TODO: Add or replace dependency.
-        if($SeqUrl) { Send-SeqEvent.ps1 'No rows returned for {Subject}' @{Subject=$Subject} -Level Information }
+        if($SeqUrl) { Send-SeqEvent 'No rows returned for {Subject}' @{Subject=$Subject} -Level Information }
         if($EmptySubject) { $Msg.Subject = $EmptySubject; Send-MailMessage @Msg  }
         return
     }
@@ -149,8 +122,7 @@ $PostContent
         if($Caption){$tableFormat.Add('Caption',$Caption)}
         $Msg.Add('Body',($data |
             ConvertTo-Html -PreContent $PreContent -PostContent $PostContent -Head '<style type="text/css">th,td {padding:2px 1ex 0 2px}</style>' |
-			#TODO: Add or replace dependency.
-            Format-HtmlDataTable.ps1 @tableFormat |
+            Format-HtmlDataTable @tableFormat |
             Out-String))
     }
     if($PSCmdlet.ShouldProcess("Message:`n$(New-Object PSObject -Property $Msg|Format-List|Out-String)`n",'Send message'))
@@ -159,8 +131,7 @@ $PostContent
 catch # report problems
 {
     Write-Warning $_
-	#TODO: Add or replace dependency.
-    if($SeqUrl) { Send-SeqScriptEvent.ps1 'Reporting' -InvocationScope 2 }
+    if($SeqUrl) { Send-SeqScriptEvent 'Reporting' -InvocationScope 2 }
     # consciously omitting Cc & Bcc
     $Msg = @{
         To         = $To

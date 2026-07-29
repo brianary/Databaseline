@@ -9,7 +9,7 @@ Database
 Use-SqlcmdParams
 
 .LINK
-Invoke-Sqlcmd
+https://dbatools.io/
 
 .LINK
 https://www.databasejournal.com/features/mssql/article.php/1570801/Beware-of-the-System-Generated-Constraint-Name.htm
@@ -21,59 +21,19 @@ WARNING: Renamed 10 defaults
 #>
 
 [CmdletBinding(SupportsShouldProcess=$true)][OutputType([void])] Param(
-# The name of a server (and optional instance) to connect to.
-[Parameter(ParameterSetName='ByConnectionParameters',Position=0,Mandatory=$true)][string] $ServerInstance,
+# The server to use, by name or constructed via Connect-DbaInstance.
+[Parameter(Position=0,Mandatory=$true)][Alias('Parent','ServerInstance')][DbaInstanceParameter] $SqlInstance,
 # The the database to connect to on the server.
-[Parameter(ParameterSetName='ByConnectionParameters',Position=1,Mandatory=$true)][string] $Database,
-# Specifies a connection string to connect to the server.
-[Parameter(ParameterSetName='ByConnectionString',Mandatory=$true)][Alias('ConnStr','CS')][string]$ConnectionString,
-# Specifies an SMO Database object to query.
-[Parameter(ParameterSetName='ByDatabase',Mandatory=$true)]
-[Microsoft.SqlServer.Management.Smo.Database] $SmoDatabase,
-# The connection string name from the ConfigurationManager to use.
-[Parameter(ParameterSetName='ByConnectionName',Mandatory=$true)][string]$ConnectionName,
+[Parameter(Position=1,Mandatory=$true)][Alias('Name')][string] $Database,
 # Update the database when present, otherwise simply outputs the changes as script.
 [switch] $Update
 )
 
-Use-SqlcmdParams
-
-function Resolve-SqlcmdResult
-{
-<#
-.SYNOPSIS
-Executes SQL that generates SQL strings, and optionally executes the generated SQL.
-
-.PARAMETER Action
-Descriptive text for the commands produced, with two format arguments:
-0: Verb tense, e.g. 'Renam{0:e;ing;ed}'
-1: Command count
-
-.PARAMETER Query
-A SQL query that produces a single-column result set, named "command", containing
-executable SQL.
-#>
-	[CmdletBinding(SupportsShouldProcess=$true)] Param([string]$Action,[string]$Query)
-	$count,$i = 0,0
-	[string[]]$commands = Invoke-Sqlcmd $Query |Select-Object -ExpandProperty command
-	if(!$commands){return}
-	$max,$act = ($commands.Count/100),($Action -f -1,$commands.Count)
-	Write-Verbose ($Action -f 1,$commands.Count)
-	foreach($command in $commands)
-	{
-		Write-Progress $act "Execute command #$i" -CurrentOperation $command -PercentComplete ($i++/$max)
-		if(!$Update) {$command}
-		elseif($PSCmdlet.ShouldProcess($command,'execute')) {Invoke-Sqlcmd $command; $count++}
-	}
-	Write-Progress ($action -f 0,$i) -Completed
-	if($count) {Write-Warning ($Action -f 0,$count)}
-}
+Use-DbInstance
 
 function Repair-DefaultName
 {
-	@{
-		Action = 'Renam{0:e;ing;ed} {1} defaults'
-		Query  = @"
+	Resolve-QueryResult -Action 'Renam{0:e;ing;ed} {1} defaults' -Query @"
 select 'if object_id(''' + quotename(schema_name(schema_id)) +'.'+ quotename(name)
 	   +''') is not null exec sp_rename '''+quotename(schema_name(schema_id))+'.'+quotename(name)
 	   +''', ''DF_'+object_name(parent_object_id)+'_'+col_name(parent_object_id,parent_column_id)
@@ -86,14 +46,11 @@ select 'if object_id(''' + quotename(schema_name(schema_id)) +'.'+ quotename(nam
    and parent_object_id not in (select major_id from sys.extended_properties
 	   where class = 1 and minor_id = 0 and name = 'microsoft_database_tools_support'); -- excludes sysdiagrams, &c
 "@
-	} |ForEach-Object {Resolve-SqlcmdResult @_}
 }
 
 function Repair-PrimaryKeyName
 {
-	@{
-		Action = 'Renam{0:e;ing;ed} {1} primary keys'
-		Query  = @"
+	Resolve-QueryResult -Action 'Renam{0:e;ing;ed} {1} primary keys' -Query @"
 select 'if object_id(''' + quotename(schema_name(schema_id)) +'.'+ quotename(name)
 	   +''') is not null exec sp_rename '''+quotename(schema_name(schema_id))+'.'+quotename(name)
 	   +''', '''+'PK_'+object_name(parent_object_id)+''', ''OBJECT'';' command
@@ -105,14 +62,11 @@ select 'if object_id(''' + quotename(schema_name(schema_id)) +'.'+ quotename(nam
    and parent_object_id not in (select major_id from sys.extended_properties
 	   where class = 1 and minor_id = 0 and name = 'microsoft_database_tools_support'); -- excludes sysdiagrams, &c
 "@
-	} |ForEach-Object {Resolve-SqlcmdResult @_}
 }
 
 function Repair-ForeignKeyName
 { #TODO: Mitigate possible deterministic naming collisions.
-	@{
-		Action = 'Renam{0:e;ing;ed} {1} foreign keys'
-		Query  =  @"
+	Resolve-QueryResult -Action 'Renam{0:e;ing;ed} {1} foreign keys' -Query @"
 select 'if object_id(''' + quotename(schema_name(schema_id)) +'.'+ quotename(name)
 	   +''') is not null exec sp_rename '''+quotename(schema_name(schema_id))+'.'+quotename(name)
 	   +''', '''+'FK_'+object_name(parent_object_id)+'_'+object_name(referenced_object_id)+''', ''OBJECT'';' command
@@ -124,7 +78,6 @@ select 'if object_id(''' + quotename(schema_name(schema_id)) +'.'+ quotename(nam
    and parent_object_id not in (select major_id from sys.extended_properties
 	   where class = 1 and minor_id = 0 and name = 'microsoft_database_tools_support'); -- excludes sysdiagrams, &c
 "@
-	} |ForEach-Object {Resolve-SqlcmdResult @_}
 }
 
 Repair-DefaultName

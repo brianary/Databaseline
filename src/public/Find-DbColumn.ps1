@@ -19,10 +19,10 @@ Database
 System.Configuration
 
 .LINK
-Invoke-Sqlcmd
+https://dbatools.io/
 
 .EXAMPLE
-Find-DbColumn -ServerInstance '(localdb)\ProjectsV13' -Database AdventureWorks2016 -IncludeColumns %price% |Format-Table -AutoSize
+Find-DbColumn -SqlInstance '(localdb)\ProjectsV13' -Database AdventureWorks2016 -IncludeColumns %price% |Format-Table -AutoSize
 
 TableSchema TableName               ColumnName        DataType Nullable DefaultValue
 ----------- ---------               ----------        -------- -------- ------------
@@ -35,17 +35,10 @@ Sales       SalesOrderDetail        UnitPriceDiscount money       False ((0.0))
 #>
 
 [CmdletBinding()][OutputType([Management.Automation.PSCustomObject])] Param(
-# The server and instance to connect to.
-[Parameter(ParameterSetName='ByConnectionParameters',Mandatory=$true)][string] $ServerInstance,
-# The database to use.
-[Parameter(ParameterSetName='ByConnectionParameters',Mandatory=$true)][string] $Database,
-# Specifies a connection string to connect to the server.
-[Parameter(ParameterSetName='ByConnectionString',Mandatory=$true)][Alias('ConnStr','CS')][string] $ConnectionString,
-# Specifies an SMO Database object to query.
-[Parameter(ParameterSetName='ByDatabase',Mandatory=$true)]
-[Microsoft.SqlServer.Management.Smo.Database] $SmoDatabase,
-# The connection string name from the ConfigurationManager to use.
-[Parameter(ParameterSetName='ByConnectionName',Mandatory=$true)][string] $ConnectionName,
+# The server to use, by name or constructed via Connect-DbaInstance.
+[Parameter(Position=0,Mandatory=$true)][Alias('Parent','ServerInstance')][DbaInstanceParameter] $SqlInstance,
+# The the database to connect to on the server.
+[Parameter(Position=1,Mandatory=$true)][Alias('Name')][string] $Database,
 # A like-pattern of database schemata to include (will only include these).
 [string[]] $IncludeSchemata,
 # A like-pattern of database schemata to exclude.
@@ -77,7 +70,7 @@ function Format-LikeCondition([string]$column,[string[]]$patterns,[switch]$not)
 "@
 }
 
-Use-SqlcmdParams -QueryTimeout 300
+Use-DbInstance
 
 $colssql = @"
 select TABLE_SCHEMA TableSchema,
@@ -143,5 +136,4 @@ if($ExcludeColumns) { $colssql += Format-LikeCondition COLUMN_NAME $ExcludeColum
 $colssql += ' order by TABLE_SCHEMA, TABLE_NAME, ORDINAL_POSITION;'
 
 Write-Debug "Schema Query:`n$colssql"
-#TODO: Add or replace dependency.
-Invoke-Sqlcmd $colssql |ConvertFrom-DataRow.ps1
+Invoke-DbaQuery -Query $colssql -As PSObject
