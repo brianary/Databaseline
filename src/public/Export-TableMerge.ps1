@@ -56,13 +56,13 @@ set identity_insert [HumanResources].[Department] off;
 #>
 
 [CmdletBinding()][OutputType([string])] Param(
-[Parameter(Position=0,Mandatory=$true,ValueFromPipeline=$true)][Table] $Table
+[Parameter(Position=0,Mandatory=$true,ValueFromPipeline=$true)][Microsoft.SqlServer.Management.Smo.Table] $Table
 )
 Begin
 {
     filter ConvertTo-SqlName([Parameter(Position=0,Mandatory=$true,ValueFromPipeline=$true)][string] $Name)
     {
-        return [SqlSmoObject]::QuoteString($Name,'[',']')
+        return [Microsoft.SqlServer.Management.Smo.SqlSmoObject]::QuoteString($Name,'[',']')
     }
 
     filter ConvertTo-SqlLiteral([Parameter(Position=0,Mandatory=$true,ValueFromPipeline=$true)] $Value)

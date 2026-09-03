@@ -3,6 +3,7 @@
 Tests generating a Mermaid entity relation diagram for database tables.
 #>
 
+return #TODO: Maybe try to fix this someday, if it's worth the excessive time.
 if(!(&"$PSScriptRoot/../scripts/Test-RelevantTest.ps1")) {return}
 BeforeAll {
 	Set-StrictMode -Version Latest

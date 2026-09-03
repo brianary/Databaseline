@@ -123,7 +123,7 @@ Justification='This script uses $input within an End block.')]
 [CmdletBinding()][OutputType([string])] Param(
 # An SMO table object to include in the diagram.
 [Parameter(Position=1,Mandatory=$true,ValueFromPipeline=$true)]
-[Table] $Table
+[Microsoft.SqlServer.Management.Smo.Table] $Table
 )
 Begin
 {
@@ -132,8 +132,8 @@ Begin
 	filter Format-ColumnAsMermaid
 	{
 		Param(
-		[Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$true)][DataType] $DataType,
-		[Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$true)][ExtendedPropertyCollection] $ExtendedProperties,
+		[Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$true)][Microsoft.SqlServer.Management.Smo.DataType] $DataType,
+		[Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$true)][Microsoft.SqlServer.Management.Smo.ExtendedPropertyCollection] $ExtendedProperties,
 		[Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$true)][string] $Name,
 		[Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$true)][bool] $InPrimaryKey,
 		[Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$true)][bool] $IsForeignKey,
@@ -156,7 +156,7 @@ Begin
 	{
 		Param(
 		[Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$true)][string] $Name,
-		[Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$true)][ColumnCollection] $Columns
+		[Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$true)][Microsoft.SqlServer.Management.Smo.ColumnCollection] $Columns
 		)
 		$Local:OFS = "$NL`t"
 		return @"
@@ -169,15 +169,15 @@ $Name {
 	filter Format-ForeignKeyAsMermaid
 	{
 		Param(
-		[Parameter(Position=0,Mandatory=$true)][TableCollection] $AllDatabaseTables,
+		[Parameter(Position=0,Mandatory=$true)][Microsoft.SqlServer.Management.Smo.TableCollection] $AllDatabaseTables,
 		[Parameter(Position=1,Mandatory=$true)][string[]] $SelectedTableUrns,
 		[Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$true)][string] $Name,
 		[Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$true)][string] $ReferencedTable,
 		[Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$true)][string] $ReferencedTableSchema,
 		[Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$true)][bool] $IsEnabled,
-		[Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$true)][Table] $Parent,
-		[Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$true)][ForeignKeyColumnCollection] $Columns,
-		[Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$true)][ExtendedPropertyCollection] $ExtendedProperties
+		[Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$true)][Microsoft.SqlServer.Management.Smo.Table] $Parent,
+		[Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$true)][Microsoft.SqlServer.Management.Smo.ForeignKeyColumnCollection] $Columns,
+		[Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$true)][Microsoft.SqlServer.Management.Smo.ExtendedPropertyCollection] $ExtendedProperties
 		)
 		if(!$IsEnabled) {return}
 		if($AllDatabaseTables[$ReferencedTable,$ReferencedTableSchema].Urn.Value -notin $SelectedTableUrns) {return}
