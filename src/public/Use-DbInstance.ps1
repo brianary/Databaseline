@@ -21,7 +21,9 @@ Sets a default connection to use for queries.
 # Sets a default output type for Invoke-DbaQuery.
 [ValidateSet('DataSet','DataTable','DataRow','PSObject','PSObjectArray','SingleValue')][string] $As
 )
-#TODO: Add or replace dependencies.
-Set-ParameterDefault Invoke-DbaQuery SqlInstance $SqlInstance -Scope 1
-if($Database) {Set-ParameterDefault Invoke-DbaQuery Database $Database -Scope 1}
-if($As) {Set-ParameterDefault Invoke-DbaQuery As $As -Scope 1}
+[Management.Automation.SessionState] $sessionState =
+	$ExecutionContext.SessionState.Module.GetVariableFromCallersModule('PSCmdlet')?.Value?.SessionState
+$scope = $sessionState ? @{ SessionState = $sessionState } : @{ Global = $true }
+if($SqlInstance) {Set-ParameterDefault Invoke-DbaQuery SqlInstance $SqlInstance $scope}
+if($Database) {Set-ParameterDefault Invoke-DbaQuery Database $Database $scope}
+if($As) {Set-ParameterDefault Invoke-DbaQuery As $As $scope}
