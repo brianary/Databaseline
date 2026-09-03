@@ -24,6 +24,6 @@ Sets a default connection to use for queries.
 [Management.Automation.SessionState] $sessionState =
 	$ExecutionContext.SessionState.Module.GetVariableFromCallersModule('PSCmdlet')?.Value?.SessionState
 $scope = $sessionState ? @{ SessionState = $sessionState } : @{ Global = $true }
-if($SqlInstance) {Set-ParameterDefault Invoke-DbaQuery SqlInstance $SqlInstance $scope}
-if($Database) {Set-ParameterDefault Invoke-DbaQuery Database $Database $scope}
-if($As) {Set-ParameterDefault Invoke-DbaQuery As $As $scope}
+if($SqlInstance) {Set-ParameterDefault Invoke-DbaQuery SqlInstance $SqlInstance @scope}
+if($Database) {Set-ParameterDefault Invoke-DbaQuery Database $Database @scope}
+if($As) {Set-ParameterDefault Invoke-DbaQuery As $As @scope}
