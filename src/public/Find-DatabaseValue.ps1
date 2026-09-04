@@ -124,7 +124,7 @@ function Format-LikeCondition([string]$column,[string[]]$patterns,[switch]$not)
 "@
 }
 
-Use-DbInstance -As PSObject
+Use-DbInstance -SqlInstance $SqlInstance -Database $Database -As PSObject
 
 if($Value -is [int])
 {
