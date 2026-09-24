@@ -59,7 +59,7 @@ Indicates that SSL should be used when sending the message.
 [uri]$SeqUrl = $PSDefaultParameterValues['Send-SeqEvent:Server']
 )
 
-Use-DbInstance
+Use-DbInstance -SqlInstance $SqlInstance -Database $Database -As PSObject
 
 if($SeqUrl){Use-SeqServer $SeqUrl}
 
@@ -86,7 +86,7 @@ if($UseSsl)   { $Msg.UseSsl = $true }
 
 try
 {
-    [psobject[]]$data = Invoke-DbaQuery -Query $Sql -As PSObject -ErrorAction Stop
+    [psobject[]]$data = Invoke-DbaQuery -Query $Sql -ErrorAction Stop
     $data |Format-Table |Out-String |Write-Verbose
     if(!$data -or $data.Length -eq 0) # no rows
     {

@@ -70,7 +70,7 @@ function Format-LikeCondition([string]$column,[string[]]$patterns,[switch]$not)
 "@
 }
 
-Use-DbInstance
+Use-DbInstance -SqlInstance $SqlInstance -Database $Database -As PSObject
 
 $colssql = @"
 select TABLE_SCHEMA TableSchema,
@@ -136,4 +136,4 @@ if($ExcludeColumns) { $colssql += Format-LikeCondition COLUMN_NAME $ExcludeColum
 $colssql += ' order by TABLE_SCHEMA, TABLE_NAME, ORDINAL_POSITION;'
 
 Write-Debug "Schema Query:`n$colssql"
-Invoke-DbaQuery -Query $colssql -As PSObject
+Invoke-DbaQuery -Query $colssql

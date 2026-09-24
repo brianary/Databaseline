@@ -6,7 +6,7 @@ Sets a default dbatools connection, using a caller script's parameter values whe
 Database
 
 .EXAMPLE
-Use-DbInstance -SqlInstance '(localdb)\ProjectsV13' -Database AdventureWorks2016
+Use-DbInstance -SqlInstance '(localdb)\ProjectsV13' -Database AdventureWorks2016 -As PSObject
 
 Sets a default connection to use for queries.
 #>
