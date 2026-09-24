@@ -45,7 +45,7 @@ ColumnsInIndex : 1
 [Parameter(Position=2,Mandatory=$true)][Alias('ColName')][string]$ColumnName
 )
 
-Use-DbInstance
+Use-DbInstance -SqlInstance $SqlInstance -Database $Database -As PSObject
 
 Invoke-DbaQuery -Query @"
 select object_schema_name(i.object_id) SchemaName,
@@ -62,4 +62,4 @@ select object_schema_name(i.object_id) SchemaName,
    and ic.index_id = i.index_id
  where col_name(ic.object_id,ic.column_id) = '$($ColumnName -replace "'","''")'
  order by TableName, IndexName;
-"@ -As PSObject
+"@

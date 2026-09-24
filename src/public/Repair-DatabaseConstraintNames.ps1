@@ -29,7 +29,7 @@ WARNING: Renamed 10 defaults
 [switch] $Update
 )
 
-Use-DbInstance
+Use-DbInstance -SqlInstance $SqlInstance -Database $Database -As PSObject
 
 function Repair-DefaultName
 {

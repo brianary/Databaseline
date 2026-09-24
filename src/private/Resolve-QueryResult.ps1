@@ -11,9 +11,13 @@ Descriptive text for the commands produced, with two format arguments:
 A SQL query that produces a single-column result set, named "command", containing
 executable SQL.
 #>
-[CmdletBinding(SupportsShouldProcess=$true)] Param([string]$Action,[string]$Query)
+
+[CmdletBinding(SupportsShouldProcess=$true)] Param(
+[Parameter(Position=0,Mandatory=$true)][string]$Action,
+[Parameter(Position=1,Mandatory=$true)][string]$Query
+)
 $count,$i = 0,0
-[string[]]$commands = Invoke-DbaQuery -Query $Query -As PSObject |Select-Object -ExpandProperty command
+[string[]]$commands = Invoke-DbaQuery -Query $Query |Select-Object -ExpandProperty command
 if(!$commands){return}
 $max,$act = ($commands.Count/100),($Action -f -1,$commands.Count)
 Write-Verbose ($Action -f 1,$commands.Count)
@@ -21,7 +25,7 @@ foreach($command in $commands)
 {
 	Write-Progress $act "Execute command #$i" -CurrentOperation $command -PercentComplete ($i++/$max)
 	if(!$Update) {$command}
-	elseif($PSCmdlet.ShouldProcess($command,'execute')) {Invoke-DbaQuery -Query $command -As PSObject; $count++}
+	elseif($PSCmdlet.ShouldProcess($command,'execute')) {Invoke-DbaQuery -Query $command; $count++}
 }
 Write-Progress ($action -f 0,$i) -Completed
 if($count) {Write-Warning ($Action -f 0,$count)}

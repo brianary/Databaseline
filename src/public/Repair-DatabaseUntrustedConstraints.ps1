@@ -29,7 +29,7 @@ WARNING: Checked 2 constraints
 [switch] $Update
 )
 
-Use-DbInstance
+Use-DbInstance -SqlInstance $SqlInstance -Database $Database -As PSObject
 
 function Repair-DefaultName
 {
