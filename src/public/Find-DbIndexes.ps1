@@ -44,10 +44,7 @@ ColumnsInIndex : 1
 # The column name to search for.
 [Parameter(Position=2,Mandatory=$true)][Alias('ColName')][string]$ColumnName
 )
-
-Use-DbInstance -SqlInstance $SqlInstance -Database $Database -As PSObject
-
-Invoke-DbaQuery -Query @"
+Invoke-DbaQuery -SqlInstance $SqlInstance -Database $Database -As PSObject -Query @"
 select object_schema_name(i.object_id) SchemaName,
        object_name(i.object_id) TableName,
        i.name IndexName,
