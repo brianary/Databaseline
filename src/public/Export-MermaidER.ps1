@@ -188,7 +188,7 @@ $Name {
 }
 End
 {
-	[Table[]] $tables = if($input) {$input} else {@($Table)}
+	[Microsoft.SqlServer.Management.Smo.Table[]] $tables = if($input) {$input} else {@($Table)}
 	$Local:OFS = ''
 	return @"
 erDiagram
