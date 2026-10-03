@@ -27,3 +27,4 @@ Enhancements for working with SQL Server databases.
 - [Send-SqlReport](https://github.com/brianary/Databaseline/wiki/Send-SqlReport): Execute a SQL statement and email the results.
 - [Test-ConnectionString](https://github.com/brianary/Databaseline/wiki/Test-ConnectionString): Test a given connection string and provide details about the connection.
 - [Use-DbInstance](https://github.com/brianary/Databaseline/wiki/Use-DbInstance): Sets a default dbatools connection, using a caller script's parameter values when available.
+- [Write-DatabaseInfo](https://github.com/brianary/Databaseline/wiki/Write-DatabaseInfo): Creates a markdown file containing database details.
