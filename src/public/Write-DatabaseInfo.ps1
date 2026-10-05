@@ -25,12 +25,14 @@ Begin
 	filter Format-TableDetail
 	{
 		[CmdletBinding()] Param(
+		[Parameter(ValueFromPipelineByPropertyName=$true,Mandatory=$true)][string] $Schema,
 		[Parameter(ValueFromPipelineByPropertyName=$true,Mandatory=$true)][string] $Name,
 		[Parameter(ValueFromPipelineByPropertyName=$true,Mandatory=$true)][double] $RowCountAsDouble,
-		[Parameter(ValueFromPipelineByPropertyName=$true,Mandatory=$true)][double] $DataSpaceUsed
+		[Parameter(ValueFromPipelineByPropertyName=$true,Mandatory=$true)][double] $DataSpaceUsed,
+		[Parameter(ValueFromPipeline=$true,Mandatory=$true)][Microsoft.SqlServer.Management.Smo.Table] $Table
 		)
 		return @(
-			$Name
+			"$Table"
 			$RowCountAsDouble
 			1024*$DataSpaceUsed |Format-ByteUnits -Precision 2
 		)
@@ -58,7 +60,7 @@ Begin
 		return @"
 | Table | Rows | Size |
 |-------|-----:|-----:|
-$($TableCollection.GetEnumerator() |Show-Progress 'Examining tables' {$_.Name} |Format-Table)
+$($TableCollection.GetEnumerator() |Show-Progress 'Examining tables' {"$_"} |Format-Table)
 "@
 	}
 
@@ -77,7 +79,7 @@ Last updated $(Get-Date)
 ``````mermaid
 $($Database |
 	Get-DbaDbTable |
-	Show-Progress 'Add tables to ER diagram' {$_.Name} |
+	Show-Progress 'Add tables to ER diagram' {"$_"} |
 	Where-Object Name -NotIn dtproperties,__MigrationLog,__SchemaSnapshot |
 	Export-MermaidER)
 ``````
