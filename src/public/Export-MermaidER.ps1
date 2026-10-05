@@ -143,13 +143,15 @@ Begin
 		[Parameter(ValueFromPipelineByPropertyName=$true)][long] $IdentityIncrement,
 		[Parameter(ValueFromPipelineByPropertyName=$true)][string] $Default
 		)
+		$type = "$DataType" -eq '' ? "$($DataType.SqlDataType)" : "$DataType"
+		$nameid = $Name -replace '\W+','_'
 		$key = if($InPrimaryKey){' PK'}elseif($IsForeignKey){' FK'}
 		[string[]] $details = @()
 		if($Nullable) {$details += 'nullable'}
 		if($Identity) {$details += "identity($IdentitySeed,$IdentityIncrement)"}
 		if($ExtendedProperties['MS_Description']) {$details += $ExtendedProperties['MS_Description'].Value -replace '"',"'"}
 		if($details) {$details = ' "{0}"' -f ($details -join '; ')}
-		return "$DataType $Name$key$details"
+		return "$type $nameid$key$details"
 	}
 
 	filter Format-TableAsMermaid
