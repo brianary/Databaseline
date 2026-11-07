@@ -15,14 +15,16 @@ Creates a README.md with information about the database.
 # The file to write database info to.
 [Parameter(Position=0)][string] $Path = 'README.md',
 # The file encoding to use.
-[Parameter(Position=1)][Text.Encoding] $Encoding = [Text.Encoding]::UTF8,
+[Parameter(Position=1)]
+[ValidateSet('ansi','ascii','bigendianunicode','bigendianutf32','oem','unicode','utf32','utf7','utf8','utf8BOM','utf8NoBOM')]
+[string] $Encoding = 'utf8',
 # The database to write the details for.
 [Parameter(ValueFromPipeline=$true,Mandatory=$true)]
 [Microsoft.SqlServer.Management.Smo.Database] $Database
 )
 Begin
 {
-	filter Format-TableDetail
+	filter Format-DbTableDetail
 	{
 		[CmdletBinding()] Param(
 		[Parameter(ValueFromPipelineByPropertyName=$true,Mandatory=$true)][string] $Schema,
@@ -38,7 +40,7 @@ Begin
 		)
 	}
 
-	filter Format-Table
+	filter Format-DbTable
 	{
 		[CmdletBinding()] Param(
 		[Parameter(ValueFromPipeline=$true,Mandatory=$true)]
@@ -46,11 +48,11 @@ Begin
 		)
 		$Local:OFS = ' | '
 		return @"
-| $($Table |Format-TableDetail) |
+| $($Table |Format-DbTableDetail) |
 "@
 	}
 
-	function Format-TableCollection
+	function Format-DbTableCollection
 	{
 		[CmdletBinding()] Param(
 		[Parameter(Position=0,Mandatory=$true)]
@@ -60,7 +62,7 @@ Begin
 		return @"
 | Table | Rows | Size |
 |-------|-----:|-----:|
-$($TableCollection.GetEnumerator() |Show-Progress 'Examining tables' {"$_"} |Format-Table)
+$($TableCollection.GetEnumerator() |Show-Progress 'Examining tables' {"$_"} |Format-DbTable)
 "@
 	}
 
@@ -84,11 +86,12 @@ $($Database |
 	Export-MermaidER)
 ``````
 
-$(Format-TableCollection $Database.Tables)
+$(Format-DbTableCollection $Database.Tables)
 "@
 	}
 }
 Process
 {
+	return "Encoding: $Encoding ($($Encoding.GetType()))"
 	Format-Database $Database |Out-File $Path -Encoding $Encoding
 }
