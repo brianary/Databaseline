@@ -92,6 +92,5 @@ $(Format-DbTableCollection $Database.Tables)
 }
 Process
 {
-	return "Encoding: $Encoding ($($Encoding.GetType()))"
 	Format-Database $Database |Out-File $Path -Encoding $Encoding
 }
